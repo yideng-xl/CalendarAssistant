@@ -1,0 +1,23 @@
+# 编译产物
+/dist/
+/bin/
+*.exe
+*.zip
+*.dmg
+calendar-assistant
+
+# 大资源文件
+/assets/*.png
+/assets/*.icns
+
+# Go 相关
+go.sum
+vendor/
+
+# macOS 相关
+.DS_Store
+
+# 临时文件
+.gemini/
+.brainstorming_tasks.md
+repro_panic.go
