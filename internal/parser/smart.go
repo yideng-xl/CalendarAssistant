@@ -51,6 +51,8 @@ func (p *smartParser) Parse(text string) (*MeetingEvent, error) {
 	}, nil
 }
 
+// isLogData 识别并过滤开发日志。
+// 如果文本包含 INFO/ERROR 等日志级别，且不含明确的会议链接，则视为日志。
 func (p *smartParser) isLogData(text string) bool {
 	// 常见的日志级别和堆栈特征
 	logPatterns := []string{
