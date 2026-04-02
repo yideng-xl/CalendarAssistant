@@ -44,7 +44,8 @@ make release
 ## 👥 贡献者
 
 *   **一簦 (The Developer)** - 创建者与维护者。
-*   **Gemini CLI (AI Co-architect)** - 负责智能解析引擎与系统集成逻辑的 AI 配对编程伙伴。
+*   **Gemini CLI (AI Co-architect)** - 负责智能解析引擎与系统集成逻辑。
+    - GitHub Email: `gemini-cli@google.com`
 
 ## 📄 开源协议
 
