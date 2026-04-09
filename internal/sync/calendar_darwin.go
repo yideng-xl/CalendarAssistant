@@ -147,12 +147,13 @@ func (p *macOSCalendarProvider) buildAlarmScript(reminders []time.Duration) stri
 	var sb strings.Builder
 	sb.WriteString("        tell currentEvent\n")
 	for _, r := range reminders {
-		// time.Duration 是纳秒，转为秒。AppleScript 提醒通常是负数表示“提前”
-		seconds := int(r.Seconds())
-		if seconds > 0 {
-			seconds = -seconds
+		// AppleScript trigger interval: minutes, negative = before event
+		minutes := int(r.Minutes())
+		if minutes > 0 {
+			minutes = -minutes
 		}
-		sb.WriteString(fmt.Sprintf("            make new sound alarm at end with properties {trigger interval:%d}\n", seconds))
+		line := fmt.Sprintf("            make new sound alarm at end with properties {trigger interval:%d}\n", minutes)
+		sb.WriteString(line)
 	}
 	sb.WriteString("        end tell")
 	return sb.String()

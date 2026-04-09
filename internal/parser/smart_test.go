@@ -147,6 +147,58 @@ func TestSmartParser(t *testing.T) {
 	})
 }
 
+// === 新增：中文数字时间测试 ===
+
+func TestSmartParserChineseNumberTime(t *testing.T) {
+	p := NewSmartParser()
+
+	t.Run("Chinese Number - Si Dian Ban", func(t *testing.T) {
+		text := "四点半有个评审会议"
+		assert.True(t, p.CanParse(text))
+		event, err := p.Parse(text)
+		assert.NoError(t, err)
+		assert.Equal(t, 16, event.StartTime.Hour()) // 四点半 → 16:30（无前缀默认下午）
+		assert.Equal(t, 30, event.StartTime.Minute())
+	})
+
+	t.Run("Chinese Number - Morning", func(t *testing.T) {
+		text := "上午九点 周会"
+		assert.True(t, p.CanParse(text))
+		event, err := p.Parse(text)
+		assert.NoError(t, err)
+		assert.Equal(t, 9, event.StartTime.Hour())
+		assert.Equal(t, 0, event.StartTime.Minute())
+	})
+
+	t.Run("Chinese Number - Afternoon Explicit", func(t *testing.T) {
+		text := "下午两点四十五 评审会议"
+		assert.True(t, p.CanParse(text))
+		event, err := p.Parse(text)
+		assert.NoError(t, err)
+		assert.Equal(t, 14, event.StartTime.Hour())
+		assert.Equal(t, 45, event.StartTime.Minute())
+	})
+
+	t.Run("Chinese Number - Ten O Clock", func(t *testing.T) {
+		text := "十点 站会"
+		assert.True(t, p.CanParse(text))
+		event, err := p.Parse(text)
+		assert.NoError(t, err)
+		assert.Equal(t, 10, event.StartTime.Hour())
+	})
+
+	t.Run("Chinese Number With Relative Date", func(t *testing.T) {
+		text := "明天三点半 评审会议"
+		assert.True(t, p.CanParse(text))
+		event, err := p.Parse(text)
+		assert.NoError(t, err)
+		tomorrow := time.Now().AddDate(0, 0, 1)
+		assert.Equal(t, tomorrow.Day(), event.StartTime.Day())
+		assert.Equal(t, 15, event.StartTime.Hour()) // 三点半 → 15:30
+		assert.Equal(t, 30, event.StartTime.Minute())
+	})
+}
+
 // === 新增：多事件解析测试 ===
 
 func TestSmartParserMultiple(t *testing.T) {

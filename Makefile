@@ -2,7 +2,7 @@
 
 GO_BIN=/opt/homebrew/bin/go
 BINARY_NAME=calendar-assistant
-VERSION=0.2.0
+VERSION=0.5.1
 DIST_DIR=dist
 APP_NAME=CalendarAssistant.app
 PLIST_NAME=com.yideng.calendar-assistant.plist

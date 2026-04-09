@@ -207,7 +207,109 @@ func (p *smartParser) hasTimeHint(text string) bool {
 			return true
 		}
 	}
+
+	// 检查中文数字时间：四点半、两点、十点四十五 等
+	if p.parseChineseNumberTime(text) != nil {
+		return true
+	}
+
 	return false
+}
+
+// chineseNumMap 中文数字到阿拉伯数字的映射
+var chineseNumMap = map[rune]int{
+	'零': 0, '〇': 0, '一': 1, '二': 2, '两': 2, '三': 3,
+	'四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9,
+	'十': 10,
+}
+
+// parseChineseNum 将中文数字字符串转换为阿拉伯数字（支持 0-59 范围）
+// 例如："四" → 4, "十" → 10, "十二" → 12, "二十五" → 25, "三十" → 30
+func parseChineseNum(s string) (int, bool) {
+	if s == "" {
+		return 0, false
+	}
+	runes := []rune(s)
+	result := 0
+	hasValue := false
+
+	if len(runes) == 1 {
+		if v, ok := chineseNumMap[runes[0]]; ok {
+			return v, true
+		}
+		return 0, false
+	}
+
+	for i, r := range runes {
+		if r == '十' {
+			hasValue = true
+			if i == 0 {
+				result = 10 // "十二" = 12
+			} else {
+				// result 已有十位前缀，乘 10
+				result *= 10
+			}
+		} else if v, ok := chineseNumMap[r]; ok {
+			hasValue = true
+			if i > 0 && runes[i-1] == '十' {
+				result += v // "十二" → 10 + 2
+			} else {
+				result = v // 首位数字
+			}
+		}
+	}
+	return result, hasValue
+}
+
+// chineseTimeResult 中文时间解析结果
+type chineseTimeResult struct {
+	hour int
+	min  int
+}
+
+// parseChineseNumberTime 解析中文数字时间表达
+// 支持格式：四点半、三点、两点四十五、下午四点半、早上九点 等
+func (p *smartParser) parseChineseNumberTime(text string) *chineseTimeResult {
+	// 匹配 "[上午|下午|早上|晚上] + 中文数字 + 点 + [半|中文数字分钟]"
+	cnTimeRegex := regexp.MustCompile(`(上午|下午|早上|晚上)?([零〇一二两三四五六七八九十]+)点(半|([零〇一二两三四五六七八九十]+))?`)
+	m := cnTimeRegex.FindStringSubmatch(text)
+	if m == nil {
+		return nil
+	}
+
+	period := m[1]  // 上午/下午/早上/晚上（可能为空）
+	hourStr := m[2] // 中文数字小时
+	halfOrMin := m[3] // "半" 或中文数字分钟
+
+	hour, ok := parseChineseNum(hourStr)
+	if !ok || hour > 24 {
+		return nil
+	}
+
+	min := 0
+	if halfOrMin == "半" {
+		min = 30
+	} else if m[4] != "" {
+		min, _ = parseChineseNum(m[4])
+	}
+
+	// 处理上午/下午
+	if period == "下午" || period == "晚上" {
+		if hour < 12 {
+			hour += 12
+		}
+	} else if period == "上午" || period == "早上" {
+		if hour == 12 {
+			hour = 0
+		}
+	} else {
+		// 无前缀时，如果 hour <= 6 默认为下午（口语习惯："四点半"通常指16:30）
+		if hour >= 1 && hour <= 6 {
+			hour += 12
+		}
+	}
+
+	return &chineseTimeResult{hour: hour, min: min}
 }
 
 func (p *smartParser) parseTime(text string) (time.Time, error) {
@@ -323,12 +425,27 @@ func (p *smartParser) parseTime(text string) (time.Time, error) {
 		}
 	}
 
+	// 如果没找到日期但有中文数字时间（如"四点半"），默认为今天
 	if !foundDate {
+		if ct := p.parseChineseNumberTime(text); ct != nil {
+			t := time.Date(now.Year(), now.Month(), now.Day(), ct.hour, ct.min, 0, 0, time.Local)
+			// 如果解析出的时间已过，默认为明天
+			if t.Before(now) {
+				t = t.AddDate(0, 0, 1)
+			}
+			return p.applyTimezoneOffset(t, tzOffset), nil
+		}
 		return time.Time{}, errors.New("could not find date in text")
 	}
 
-	// 匹配时间点
+	// 先尝试阿拉伯数字时间点
 	if t, ok := p.extractTimePoint(text, targetDate); ok {
+		return p.applyTimezoneOffset(t, tzOffset), nil
+	}
+
+	// 再尝试中文数字时间点（如"明天四点半"）
+	if ct := p.parseChineseNumberTime(text); ct != nil {
+		t := time.Date(targetDate.Year(), targetDate.Month(), targetDate.Day(), ct.hour, ct.min, 0, 0, time.Local)
 		return p.applyTimezoneOffset(t, tzOffset), nil
 	}
 
