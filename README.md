@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Platform: macOS / Windows](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-blue.svg)](https://github.com/yideng-xl/CalendarAssistant)
-[![Version: 0.1.0](https://img.shields.io/badge/version-0.1.0-green.svg)](https://github.com/yideng-xl/CalendarAssistant/releases)
+[![Version: 0.1.0](https://img.shields.io/badge/version-0.2.0-green.svg)](https://github.com/yideng-xl/CalendarAssistant/releases)
 
 [🇨🇳 中文说明 (Chinese)](README_zh.md)
 
@@ -26,7 +26,7 @@
 
 ### 🚀 Installation
 
-1.  Download the latest `CalendarAssistant-v0.1.0-mac.dmg` from the [Releases](https://github.com/yideng-xl/CalendarAssistant/releases) page.
+1.  Download the latest `CalendarAssistant-v0.2.0-mac.dmg` from the [Releases](https://github.com/yideng-xl/CalendarAssistant/releases) page.
 2.  Open the DMG and drag the application to the `Applications` folder.
 3.  Launch the app; it runs silently in the system tray.
 

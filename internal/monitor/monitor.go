@@ -25,7 +25,9 @@ func NewClipboardMonitor(provider sync.CalendarProvider, opts sync.SyncOptions) 
 		parsers: []parser.MeetingParser{
 			parser.NewTencentMeetingParser(),
 			parser.NewDingTalkMeetingParser(),
-			parser.NewSmartParser(),
+			parser.NewFeishuMeetingParser(),
+			parser.NewZoomMeetingParser(),
+			parser.NewSmartParser(), // SmartParser 始终作为兜底，放在最后
 		},
 		provider: provider,
 		options:  opts,

@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform: macOS / Windows](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-blue.svg)](https://github.com/yideng-xl/CalendarAssistant)
-[![Version: 0.1.0](https://img.shields.io/badge/version-0.1.0-green.svg)](https://github.com/yideng-xl/CalendarAssistant/releases)
+[![Version: 0.1.0](https://img.shields.io/badge/version-0.2.0-green.svg)](https://github.com/yideng-xl/CalendarAssistant/releases)
 
 [🇬🇧 English Version](README.md)
 
@@ -26,7 +26,7 @@
 
 ### 🚀 安装与使用
 
-1.  在 [Releases](https://github.com/yideng-xl/CalendarAssistant/releases) 页面下载最新的 `CalendarAssistant-v0.1.0-mac.dmg`。
+1.  在 [Releases](https://github.com/yideng-xl/CalendarAssistant/releases) 页面下载最新的 `CalendarAssistant-v0.2.0-mac.dmg`。
 2.  双击打开并将应用拖入 `Applications` 文件夹。
 3.  运行应用，它将静默运行在系统状态栏。
 

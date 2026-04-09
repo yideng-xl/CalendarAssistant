@@ -13,6 +13,8 @@ type SyncOptions struct {
 
 // CalendarProvider 定义跨平台日历操作接口
 type CalendarProvider interface {
+	// CheckAuthorization 检查日历访问权限，授权通过后缓存结果
+	CheckAuthorization() error
 	// SyncEvent 同步会议到系统日历
 	SyncEvent(event *parser.MeetingEvent, options SyncOptions) error
 	// HasEvent 检测是否已存在该会议，防止重复同步

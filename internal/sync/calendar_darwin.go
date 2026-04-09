@@ -12,13 +12,43 @@ import (
 	"github.com/yideng/calendar-assistant/internal/ui"
 )
 
-type macOSCalendarProvider struct{}
+type macOSCalendarProvider struct {
+	authorized    bool // 是否已通过授权检查
+	authCheckDone bool // 是否已完成授权检查
+}
 
 func NewCalendarProvider() CalendarProvider {
 	return &macOSCalendarProvider{}
 }
 
+// CheckAuthorization 检查日历访问权限，结果缓存
+func (p *macOSCalendarProvider) CheckAuthorization() error {
+	if p.authCheckDone && p.authorized {
+		return nil
+	}
+
+	// 用一个轻量 AppleScript 测试是否有权限访问 Calendar
+	script := `tell application "Calendar" to get name of first calendar`
+	out, err := exec.Command("osascript", "-e", script).CombinedOutput()
+	if err != nil {
+		p.authCheckDone = true
+		p.authorized = false
+		ui.Log("Calendar authorization check failed: " + strings.TrimSpace(string(out)))
+		return fmt.Errorf("日历访问未授权: %s", strings.TrimSpace(string(out)))
+	}
+
+	p.authCheckDone = true
+	p.authorized = true
+	ui.Log("Calendar authorization confirmed")
+	return nil
+}
+
 func (p *macOSCalendarProvider) SyncEvent(event *parser.MeetingEvent, options SyncOptions) error {
+	// 先检查授权状态，未授权则跳过，不重复弹窗
+	if err := p.CheckAuthorization(); err != nil {
+		return err
+	}
+
 	ui.Log("Syncing via AppleScript: " + event.Subject)
 
 	// 准备 AppleScript 脚本
@@ -143,6 +173,19 @@ func escapeAppleScriptString(s string) string {
 }
 
 func SendNotification(title, message, iconPath string) {
-	script := fmt.Sprintf(`display notification "%s" with title "%s"`, escapeAppleScriptString(message), escapeAppleScriptString(title))
-	exec.Command("osascript", "-e", script).Run()
+	// 使用 JXA（JavaScript for Automation）发送通知
+	// 通过 stdin 管道传递脚本，避免命令行参数中文/emoji 编码乱码问题
+	escapedTitle := strings.ReplaceAll(title, `\`, `\\`)
+	escapedTitle = strings.ReplaceAll(escapedTitle, `"`, `\"`)
+	escapedMessage := strings.ReplaceAll(message, `\`, `\\`)
+	escapedMessage = strings.ReplaceAll(escapedMessage, `"`, `\"`)
+	escapedMessage = strings.ReplaceAll(escapedMessage, "\n", `\n`)
+
+	script := fmt.Sprintf(
+		`var app = Application.currentApplication(); app.includeStandardAdditions = true; app.displayNotification("%s", {withTitle: "%s"});`,
+		escapedMessage, escapedTitle,
+	)
+	cmd := exec.Command("osascript", "-l", "JavaScript")
+	cmd.Stdin = strings.NewReader(script)
+	cmd.Run()
 }

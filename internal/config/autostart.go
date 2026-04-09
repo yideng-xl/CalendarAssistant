@@ -28,7 +28,12 @@ func IsAutoStartEnabled() bool {
 		_, err := os.Stat(plistPath)
 		return err == nil
 	}
-	// TODO: Windows 注册表检查
+	// Windows 注册表检查
+	if runtime.GOOS == "windows" {
+		cmd := exec.Command("reg", "query", "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", "/v", AppName)
+		err := cmd.Run()
+		return err == nil
+	}
 	return false
 }
 
